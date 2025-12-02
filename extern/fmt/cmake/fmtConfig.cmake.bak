@@ -1,0 +1,11 @@
+set(fmt_FOUND TRUE)
+
+add_library(fmt INTERFACE)
+
+# alias wymagany przez spdlog
+add_library(fmt::fmt ALIAS fmt)
+
+# include directory
+target_include_directories(fmt INTERFACE
+    "${CMAKE_CURRENT_LIST_DIR}/../include"
+)

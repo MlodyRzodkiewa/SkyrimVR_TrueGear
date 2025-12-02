@@ -1,0 +1,20 @@
+{
+  "name": "arrow_hit",
+  "uuid": "arrow_hit_uuid",
+  "keep": "False",
+  "priority": 10,
+  "tracks": [
+    {
+      "action_type": "Shake",
+      "intensity_mode": "Const",
+      "once": "True",
+      "interval": 0,
+      "start_time": 0,
+      "end_time": 200,
+      "start_intensity": 80,
+      "end_intensity": 80,
+      "stop_name": "",
+      "index": [ 10 ]
+    }
+  ]
+}

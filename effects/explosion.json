@@ -1,0 +1,32 @@
+{
+  "name": "explosion",
+  "uuid": "explosion_uuid",
+  "keep": "False",
+  "priority": 50,
+  "tracks": [
+    {
+      "action_type": "Shake",
+      "intensity_mode": "FadeInAndOut",
+      "once": "False",
+      "interval": 0,
+      "start_time": 0,
+      "end_time": 1200,
+      "start_intensity": 20,
+      "end_intensity": 100,
+      "stop_name": "",
+      "index": [ 5, 6, 7, 8 ]
+    },
+    {
+      "action_type": "Electrical",
+      "intensity_mode": "Const",
+      "once": "True",
+      "interval": 5,
+      "start_time": 0,
+      "end_time": 120,
+      "start_intensity": 200,
+      "end_intensity": 200,
+      "stop_name": "",
+      "index": [ 100]
+    }
+  ]
+}
