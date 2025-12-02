@@ -1,8 +1,9 @@
-﻿#include "EffectDatabase.hpp"
-#include "json.hpp"
+#include "EffectDatabase.hpp"
+#include <nlohmann/json.hpp>
 
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <windows.h>
 
 using json = nlohmann::json;
