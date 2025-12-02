@@ -1,53 +1,53 @@
 #pragma once
+
 #include <string>
-#include <thread>
-#include <mutex>
-#include <atomic>
+#include <unordered_map>
+#include <vector>
 
-#include <websocketpp/client.hpp>
-#include <websocketpp/config/asio_no_tls_client.hpp>
+enum class ActionType
+{
+    Shake,
+    Electrical
+};
 
-class TrueGearWebsocket
+enum class IntensityMode
+{
+    Const,
+    Fade,
+    FadeInAndOut
+};
+
+struct Track
+{
+    ActionType action_type{};
+    IntensityMode intensity_mode{};
+    bool once{};
+    int interval{};
+    int start_time{};
+    int end_time{};
+    int start_intensity{};
+    int end_intensity{};
+    std::string stop_name;
+    std::vector<int> index;
+};
+
+struct Effect
+{
+    std::string name;
+    std::string uuid;
+    bool keep{};
+    int priority{};
+    std::vector<Track> tracks;
+
+    std::string to_json() const;
+};
+
+class EffectDatabase
 {
 public:
-    using client = websocketpp::client<websocketpp::config::asio_client>;
-    using connection_ptr = client::connection_ptr;
-
-    static TrueGearWebsocket& instance();
-
-    void start();
-    void stop();
-    bool is_connected() const;
-
-    void send_effect_json(const std::string& effectJsonBase64,
-        const std::string& effectName);
-
-    struct Effect
-    {
-        std::string name;
-        std::string uuid;
-        bool        keep;
-        int         priority;
-        std::vector<Track> tracks;
-
-        std::string to_json() const;
-    };
+    bool load_from_folder(const std::string& folder);
+    const Effect* get(const std::string& name) const;
 
 private:
-    TrueGearWebsocket();
-    ~TrueGearWebsocket();
-
-    void run_loop();
-    void connect();
-
-    std::string make_play_body(const std::string& effectJsonBase64,
-        const std::string& effectName);
-
-    mutable std::mutex m_mutex;
-    std::thread        m_thread;
-    std::atomic<bool>  m_running{ false };
-    std::atomic<bool>  m_connected{ false };
-
-    client             m_client;
-    websocketpp::connection_hdl m_hdl;
+    std::unordered_map<std::string, Effect> effects;
 };
