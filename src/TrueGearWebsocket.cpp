@@ -25,6 +25,7 @@ void TrueGearWebsocket::Stop()
 void TrueGearWebsocket::PlayEffect(const std::string& name)
 {
     if (!connected) {
+        spdlog::warn("[TrueGear] Ignoring effect '{}' because websocket is not connected.", name);
         return;
     }
 

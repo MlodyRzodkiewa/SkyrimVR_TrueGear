@@ -1,6 +1,9 @@
 #pragma once
 
+#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
+#include <filesystem>
+#include <exception>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -72,5 +75,32 @@ namespace logger
 
 inline void SetupLog()
 {
-    spdlog::set_level(spdlog::level::info);
+    try {
+        const auto log_path = std::filesystem::path("Data/SKSE/Plugins/TrueGear.log");
+        std::filesystem::create_directories(log_path.parent_path());
+
+        auto file_logger = spdlog::basic_logger_mt("TrueGearLog", log_path.string(), true);
+        file_logger->set_level(spdlog::level::info);
+        file_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+        spdlog::set_default_logger(file_logger);
+    }
+    catch (const std::exception& e) {
+        spdlog::error("Failed to setup file logger: {}", e.what());
+    }
+}
+
+namespace RE
+{
+    inline void ShowMessageBox(const std::string_view msg)
+    {
+        spdlog::info("[Popup] {}", msg);
+    }
+}
+
+namespace MCM
+{
+    inline void RegisterPage(const std::string_view mod_name, const std::string_view page_name)
+    {
+        spdlog::info("[MCM] Registered page '{}' for '{}'.", page_name, mod_name);
+    }
 }
