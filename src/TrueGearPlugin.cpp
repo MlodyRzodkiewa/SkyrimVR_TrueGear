@@ -30,11 +30,19 @@ namespace
         TrueGearWebsocket::Get().PlayEffect(effectName.c_str());
     }
 
+    // triggered after player drinks a potion
+    void TG_OnPotionConsumed(RE::StaticFunctionTag*)
+    {
+        logger::info("Potion consumed -> triggering drink_potion haptic effect");
+        TrueGearWebsocket::Get().PlayEffect("drink_potion");
+    }
+
     // Rejestracja funkcji Papyrusa
     bool RegisterPapyrusFuncs(SKSE::PapyrusInterface* vm)
     {
         if (vm) {
             vm->Register(TG_PlayEffect);
+            vm->Register(TG_OnPotionConsumed);
         }
 
         TG_Log("Papyrus functions registered.");

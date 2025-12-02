@@ -1,31 +1,35 @@
 #include "EffectDatabase.hpp"
 #include <nlohmann/json.hpp>
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include <windows.h>
 
 using json = nlohmann::json;
 
 static ActionType parse_action_type(const std::string& s);
 static IntensityMode parse_intensity_mode(const std::string& s);
 
-// WinAPI replacement for filesystem iteration
-static std::vector<std::string> list_json_files(const std::string& folder) {
+static std::vector<std::string> list_json_files(const std::string& folder)
+{
     std::vector<std::string> files;
 
-    std::string pattern = folder + "\\*.json";
-    WIN32_FIND_DATAA data;
-    HANDLE hFind = FindFirstFileA(pattern.c_str(), &data);
+    std::error_code ec;
+    for (const auto& entry : std::filesystem::directory_iterator(folder, ec)) {
+        if (ec) {
+            break;
+        }
 
-    if (hFind != INVALID_HANDLE_VALUE) {
-        do {
-            files.push_back(folder + "\\" + data.cFileName);
-        } while (FindNextFileA(hFind, &data));
+        if (!entry.is_regular_file()) {
+            continue;
+        }
 
-        FindClose(hFind);
+        if (entry.path().extension() == ".json") {
+            files.push_back(entry.path().string());
+        }
     }
+
     return files;
 }
 
@@ -97,9 +101,8 @@ bool EffectDatabase::load_from_folder(const std::string& folder)
             }
 
             // key = filename without extension
-            size_t slash = path.find_last_of("\\/");
-            size_t dot = path.find_last_of('.');
-            std::string key = path.substr(slash + 1, dot - slash - 1);
+            std::filesystem::path p(path);
+            std::string key = p.stem().string();
 
             effects[key] = e;
 

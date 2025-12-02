@@ -6,7 +6,11 @@
 #include <utility>
 
 #ifndef DLLEXPORT
-#  define DLLEXPORT __declspec(dllexport)
+#  if defined(_MSC_VER)
+#    define DLLEXPORT __declspec(dllexport)
+#  else
+#    define DLLEXPORT __attribute__((visibility("default")))
+#  endif
 #endif
 
 struct SKSEInterface {};
