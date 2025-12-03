@@ -1,8 +1,5 @@
-﻿#include "RE/Skyrim.h"
-#include "SKSE/SKSE.h"
-
+#include "PluginAPI.hpp"
 #include "TrueGearWebsocket.hpp"
-#include "EffectDatabase.hpp"
 
 using namespace SKSE;
 
@@ -10,18 +7,15 @@ using namespace SKSE;
 
 namespace
 {
-    std::unique_ptr<EffectDatabase> g_effects;
-
-    extern "C" DLLEXPORT bool SKSEPlugin_Load(const SKSEInterface* skse)
+    void ShowStartupNotification()
     {
-        // Start WebSocket client for TrueGear
-        TrueGearWebsocket::Get().Start();
-
-        _MESSAGE("TrueGear Websocket started");
-
-        return true;
+        RE::ShowMessageBox("TrueGear VR initialised. Close to continue.");
     }
 
+    void RegisterMCMTab()
+    {
+        MCM::RegisterPage("TrueGear VR", "Status");
+    }
 
     // proste logowanie przez CommonLibVR
     void TG_Log(const char* msg)
@@ -32,39 +26,46 @@ namespace
     // wołane z Papyrusa: TrueGear.PlayEffect("arrow_hit")
     void TG_PlayEffect(RE::StaticFunctionTag*, RE::BSFixedString effectName)
     {
-        if (!g_effects) {
-            TG_Log("Effect DB not initialized!");
-            return;
-        }
+        logger::info("Papyrus requested effect '{}'.", effectName.c_str());
+        TrueGearWebsocket::Get().PlayEffect(effectName.c_str());
+    }
 
-        const Effect* eff = g_effects->get(effectName.c_str());
-        if (!eff) {
-            logger::warn("[TrueGear] Effect '{}' not found", effectName.c_str());
-            return;
-        }
-
-        std::string rawJson = eff->to_json();      // zaraz pokażę jak to dodać
-        std::string encoded = base64_encode(rawJson); // też już masz
-
-        TrueGearWebsocket::instance().send_effect_json(encoded, eff->name);
+    // triggered after player drinks a potion
+    void TG_OnPotionConsumed(RE::StaticFunctionTag*)
+    {
+        logger::info("Potion consumed -> triggering drink_potion haptic effect");
+        TrueGearWebsocket::Get().PlayEffect("drink_potion");
     }
 
     // Rejestracja funkcji Papyrusa
-    bool RegisterPapyrusFuncs(RE::BSScript::IVirtualMachine* vm)
+    bool RegisterPapyrusFuncs(SKSE::PapyrusInterface* vm)
     {
-        vm->RegisterFunction(
-            "PlayEffect",
-            "TrueGear",
-            TG_PlayEffect
-        );
+        if (vm) {
+            vm->Register(TG_PlayEffect);
+            vm->Register(TG_OnPotionConsumed);
+        }
 
         TG_Log("Papyrus functions registered.");
         return true;
     }
 }
 
-// Entry point pluginu
-SKSEPluginLoad(const LoadInterface* skse)
+// Entry points required by SKSE
+extern "C" DLLEXPORT bool SKSEPlugin_Query(const SKSEInterface*, PluginInfo* info)
+{
+    if (!info) {
+        return false;
+    }
+
+    info->infoVersion = PluginInfo::kVersion;
+    info->name = "TrueGear VR";
+    info->version = 1;
+
+    logger::info("SKSEPlugin_Query called; publishing plugin info.");
+    return true;
+}
+
+extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse)
 {
     Init(skse);
 
@@ -73,16 +74,16 @@ SKSEPluginLoad(const LoadInterface* skse)
 
     logger::info("TrueGearPluginVR loaded.");
 
+    ShowStartupNotification();
+
     // 1) start WebSocket
-    TrueGearWebsocket::instance().start();
+    TrueGearWebsocket::Get().Start();
 
-    // 2) wczytaj efekty z folderu "effects"
-    g_effects = std::make_unique<EffectDatabase>();
-    g_effects->load_from_folder("Data\\SKSE\\Plugins\\TrueGear\\effects");
+    RegisterMCMTab();
 
-    // 3) rejestracja Papyrusa
-    auto papyrus = GetPapyrusInterface();
-    papyrus->Register(RegisterPapyrusFuncs);
+    // 2) rejestracja Papyrusa
+    auto papyrus = SKSE::GetPapyrusInterface();
+    RegisterPapyrusFuncs(papyrus);
 
     return true;
 }
