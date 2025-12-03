@@ -17,17 +17,6 @@ namespace
         MCM::RegisterPage("TrueGear VR", "Status");
     }
 
-    extern "C" DLLEXPORT bool SKSEPlugin_Load(const SKSEInterface* skse)
-    {
-        // Start WebSocket client for TrueGear
-        TrueGearWebsocket::Get().Start();
-
-        logger::info("TrueGear Websocket started");
-
-        return true;
-    }
-
-
     // proste logowanie przez CommonLibVR
     void TG_Log(const char* msg)
     {
@@ -61,8 +50,22 @@ namespace
     }
 }
 
-// Entry point pluginu
-extern "C" DLLEXPORT bool SKSEPluginLoad(const LoadInterface* skse)
+// Entry points required by SKSE
+extern "C" DLLEXPORT bool SKSEPlugin_Query(const SKSEInterface*, PluginInfo* info)
+{
+    if (!info) {
+        return false;
+    }
+
+    info->infoVersion = PluginInfo::kVersion;
+    info->name = "TrueGear VR";
+    info->version = 1;
+
+    logger::info("SKSEPlugin_Query called; publishing plugin info.");
+    return true;
+}
+
+extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse)
 {
     Init(skse);
 

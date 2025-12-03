@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <cstdint>
 
 #ifndef DLLEXPORT
 #  if defined(_MSC_VER)
@@ -18,6 +19,15 @@
 
 struct SKSEInterface {};
 struct LoadInterface {};
+
+struct PluginInfo
+{
+    static constexpr std::uint32_t kVersion = 1;
+
+    std::uint32_t infoVersion{};
+    const char* name{};
+    std::uint32_t version{};
+};
 
 namespace RE
 {
