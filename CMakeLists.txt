@@ -49,6 +49,16 @@ target_link_libraries(TrueGearPluginVR PRIVATE
     fmt::fmt
 )
 
+if(MINGW)
+    # Build a self-contained DLL so SKSE doesn't require MinGW runtime DLLs at load time.
+    target_link_options(TrueGearPluginVR PRIVATE
+        -static
+        -static-libgcc
+        -static-libstdc++
+        -lwinpthread
+    )
+endif()
+
 # =====================================================================
 # OUTPUT SETTINGS
 # =====================================================================
